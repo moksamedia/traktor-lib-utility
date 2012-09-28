@@ -36,10 +36,7 @@ NSDictionary * beatportToShort;
     
     NSString *columnIdentifer = [aTableColumn identifier];
     
-    if ([columnIdentifer isEqualToString:@"Title"]) {
-        [self setTitle:anObject entry:[filteredEntryNodes objectAtIndex:rowIndex]];
-    }
-    else if ([columnIdentifer isEqualToString:@"File"]) {
+    if ([columnIdentifer isEqualToString:@"File"]) {
         [self setFilename:anObject entry:[filteredEntryNodes objectAtIndex:rowIndex]];
     }
     else if ([columnIdentifer isEqualToString:@"Key"]) {
@@ -66,11 +63,7 @@ NSDictionary * beatportToShort;
     
     NSString *columnIdentifer = [aTableColumn identifier];
     
-    
-    if ([columnIdentifer isEqualToString:@"Title"]) {
-        result = [self getTitleForEntry:[filteredEntryNodes objectAtIndex:rowIndex]];
-    }
-    else if ([columnIdentifer isEqualToString:@"File"]) {
+    if ([columnIdentifer isEqualToString:@"File"]) {
         result = [self getFilenameForEntry:[filteredEntryNodes objectAtIndex:rowIndex]];
     }
     else if ([columnIdentifer isEqualToString:@"Key"]) {
@@ -91,15 +84,10 @@ NSDictionary * beatportToShort;
     NSString * key = [(NSSortDescriptor*)[newDescriptors objectAtIndex:0] key];
     
     bool ascending = [(NSSortDescriptor*)[newDescriptors objectAtIndex:0] ascending];
-        
-    if ([key isEqualToString:@"title"]) {
-        [filteredEntryNodes setArray:[filteredEntryNodes sortedArrayUsingComparator: ^(id obj1, id obj2) {
-            NSComparisonResult result = [[self getTitleForEntry:obj1] compare:[self getTitleForEntry:obj2]];
-            if (ascending) return result;
-            else return reverseComparison(result);
-        }]];
-    }
-    else if ([key isEqualToString:@"file"]) {
+    
+    NSComparisonResult result;
+    
+    if ([key isEqualToString:@"file"]) {
         [filteredEntryNodes setArray:[filteredEntryNodes sortedArrayUsingComparator: ^(id obj1, id obj2) {
             NSComparisonResult result = [[self getFilenameForEntry:obj1] compare:[self getFilenameForEntry:obj2]];
             if (ascending) return result;
@@ -416,20 +404,11 @@ NSComparisonResult reverseComparison(NSComparisonResult val) {
     
 }
 
-- (NSString*)getTitleForEntry:(NSXMLNode*) entryNode {
-    return [[(NSXMLElement*)entryNode attributeForName:@"TITLE"] stringValue];
-}
-
-- (void)setTitle:(NSString*)newName entry:(NSXMLNode*) entryNode {
-    [(NSXMLElement*)entryNode removeAttributeForName:@"TITLE"];
-    [(NSXMLElement*)entryNode addAttribute:[NSXMLNode attributeWithName:@"TITLE" stringValue:newName]];
-}
-
 
 - (NSString*)getFilenameForEntry:(NSXMLNode*) entryNode {
     
     NSXMLElement * location;
-    NSError * theError=nil;
+    NSError * theError;
     NSArray * nodes;
     
     nodes = [entryNode nodesForXPath:@"./LOCATION" error:&theError];
@@ -446,7 +425,7 @@ NSComparisonResult reverseComparison(NSComparisonResult val) {
 
 }
 
-- (void)setFilename:(NSString*)newName entry:(NSXMLNode*) entryNode {
+- (NSString*)setFilename:(NSString*)newName entry:(NSXMLNode*) entryNode {
     
     NSXMLElement * location;
     NSError * theError;
@@ -471,7 +450,7 @@ NSComparisonResult reverseComparison(NSComparisonResult val) {
 - (NSString*)getKeyForEntry:(NSXMLNode*) entryNode {
     
     NSXMLElement * info, * key;
-    NSError * theError=nil;
+    NSError * theError;
     NSArray * nodes;
     
     nodes = [entryNode nodesForXPath:@"./INFO" error:&theError];
@@ -493,7 +472,7 @@ NSComparisonResult reverseComparison(NSComparisonResult val) {
 - (void)setKey:(NSString*)newKey entry:(NSXMLNode*)entryNode {
     
     NSXMLElement * info, * key;
-    NSError * theError=nil;
+    NSError * theError;
     NSArray * nodes;
     
     nodes = [entryNode nodesForXPath:@"./INFO" error:&theError];
@@ -515,7 +494,7 @@ NSComparisonResult reverseComparison(NSComparisonResult val) {
 - (NSString*)getKeyLyricsForEntry:(NSXMLNode*) entryNode {
     
     NSXMLElement * info, * keyLyrics;
-    NSError * theError = nil;
+    NSError * theError;
     NSArray * nodes;
     
     nodes = [entryNode nodesForXPath:@"./INFO" error:&theError];
@@ -537,7 +516,7 @@ NSComparisonResult reverseComparison(NSComparisonResult val) {
 - (void)setKeyLyrics:(NSString*)newKeyLyrics entry:(NSXMLNode*)entryNode {
     
     NSXMLElement * info;
-    NSError * theError = nil;
+    NSError * theError;
     NSArray * nodes;
     
     nodes = [entryNode nodesForXPath:@"./INFO" error:&theError];
@@ -565,7 +544,7 @@ NSComparisonResult reverseComparison(NSComparisonResult val) {
 
 - (NSXMLElement*)getInfoNodeFromEntry:(NSXMLNode*)entry {
     
-    NSError * theError = nil;
+    NSError * theError;
     
     NSArray * nodes = [entry nodesForXPath:@"./INFO" error:&theError];
     
@@ -579,7 +558,7 @@ NSComparisonResult reverseComparison(NSComparisonResult val) {
     
     NSEnumerator * etr = [filteredEntryNodes objectEnumerator];
     NSXMLNode * next;
-    NSString * key, * keyLyrics;
+    NSString * key, * keyLyrics, * value;
     
     NSMutableArray * problems = [[[NSMutableArray alloc] init] autorelease];
     
@@ -600,42 +579,6 @@ NSComparisonResult reverseComparison(NSComparisonResult val) {
 
     [trackTable reloadData];
     
-}
-
-- (IBAction)addKeyCodesToTitles:(id)sender {
-    
-    NSEnumerator * etr = [filteredEntryNodes objectEnumerator];
-    NSXMLNode * next;
-    NSString * title, * keyCode, * key;
-    
-    NSMutableArray * modified = [[[NSMutableArray alloc] init] autorelease];
-    
-    while (next = [etr nextObject])
-    {
-        title = [self getTitleForEntry:next];
-        keyCode = [self getKeyLyricsForEntry:next];
-        key = [self getKeyForEntry:next];
-        
-        if ([key isEqualToString:@"off"]) continue;
-        
-        if (title == nil || keyCode == nil) continue;
-        
-        if ([Trim(title) length] == 0 || [Trim(keyCode) length] == 0) continue;
-        
-        if ([title rangeOfString:keyCode].location == NSNotFound) {
-            [self setTitle:[NSString stringWithFormat:@"%@ - %@", title, keyCode] entry:next];
-            [modified addObject:next];
-        }
-    }
-    
-    [filteredEntryNodes setArray:modified];
-    
-    [trackTable reloadData];
-
-}
-
-NSString * Trim(NSString * toTrim) {
-    return [toTrim stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 }
 
 bool CompareKeyStrings(NSString * keyString, NSString * codeString) {
@@ -698,11 +641,6 @@ bool CompareKeyStrings(NSString * keyString, NSString * codeString) {
 
 }
 
-- (IBAction)showAll:(id)sender {
-    [filteredEntryNodes setArray:entryNodes];
-    [trackTable reloadData];
-}
-
 - (IBAction)loadMixedInKeyData:(id)sender {
     [self loadMixedInKeyData];
 }
@@ -717,95 +655,6 @@ bool CompareKeyStrings(NSString * keyString, NSString * codeString) {
 
 -(IBAction)filterByDate:(id)sender {
     [self filterEntryNodesByDate];
-}
-
--(IBAction)saveToTraktorLibrary:(id)sender {
-    
-    NSError * theError = nil;
-     
-     // Path to the backup file
-     NSString * backupPath = [NSString stringWithFormat:@"%@.bak",traktorLibraryPath];
-     
-     // If the backup file already exists, move the previous version to the trash
-     if ([[NSFileManager defaultManager] fileExistsAtPath:backupPath])
-     {
-         NSInteger * notUsed;
-         [[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation
-         source:[backupPath stringByDeletingLastPathComponent]
-         destination:@""
-         files:[NSArray arrayWithObject:[backupPath lastPathComponent]]
-         tag:notUsed];
-     }
-     
-     // Make the new backup file
-     [[NSFileManager defaultManager] moveItemAtPath:traktorLibraryPath toPath:backupPath error:&theError];
-     
-     if (theError != nil) {
-         NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-         [alert setMessageText:[theError localizedFailureReason]];
-         [alert runModal];
-         return;
-     }
-     
-     [[traktorXMLDocument XMLData] writeToFile:traktorLibraryPath atomically:YES];
-
-}
-
--(IBAction)fixImproperKeys:(id)sender {
-    
-    NSEnumerator * etr = [filteredEntryNodes objectEnumerator];
-    NSXMLNode * next;
-    NSString * key, * fixedKey;
-    
-    NSMutableArray * problems = [[[NSMutableArray alloc] init] autorelease];
-    
-    while (next = [etr nextObject])
-    {
-        key = [self getKeyForEntry:next];
-        
-        if ([key isEqualToString:@"off"]) continue;
-        
-        fixedKey = [improperToProper objectForKey:key];
-        
-        if (fixedKey) {
-         
-            [self setKey:fixedKey entry:next];
-            
-            [problems addObject:next];
-        }
-        
-    }
-    
-    [filteredEntryNodes setArray:problems];
-    
-    [trackTable reloadData];
-}
-
--(IBAction)findImproperKeys:(id)sender {
-    
-    NSEnumerator * etr = [filteredEntryNodes objectEnumerator];
-    NSXMLNode * next;
-    NSString * key, * fixedKey;
-    
-    NSMutableArray * problems = [[[NSMutableArray alloc] init] autorelease];
-    
-    while (next = [etr nextObject])
-    {
-        key = [self getKeyForEntry:next];
-        
-        if ([key isEqualToString:@"off"]) continue;
-        
-        fixedKey = [improperToProper objectForKey:key];
-        
-        if (fixedKey) {
-            [problems addObject:next];
-        }
-        
-    }
-    
-    [filteredEntryNodes setArray:problems];
-    
-    [trackTable reloadData];
 }
 
 - (IBAction)go_ButtonAction:(id)sender {

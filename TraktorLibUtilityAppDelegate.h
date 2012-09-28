@@ -14,7 +14,7 @@
 #define SONG_KEY 2
 #define SONG_BPM 3
 
-@interface TraktorLibUtilityAppDelegate : NSObject <NSApplicationDelegate> {
+@interface TraktorLibUtilityAppDelegate : NSObject <NSApplicationDelegate,NSTableViewDataSource> {
     NSWindow *window;
 
 	IBOutlet NSTextField *traktorLibraryPathTextField;
@@ -24,6 +24,8 @@
     IBOutlet NSDatePicker * cutoffDatePicker;
     
 	IBOutlet NSTextView * logTextView;
+    
+    IBOutlet NSTableView * trackTable;
 	
 	NSString *traktorLibraryPath;
 	NSString *mixedInKeyDatabasePath;
@@ -31,6 +33,11 @@
 	NSXMLDocument * traktorXMLDocument;
 	NSArray * mixedInKeyDataArrays;
     NSDictionary * mixedInKeyDict;
+    
+    NSMutableArray * filteredEntryNodes;
+    NSMutableArray * entryNodes;
+    
+    NSDateFormatter * dateFormatter;
 
 }
 
@@ -39,6 +46,15 @@
 - (IBAction) chooseTraktorLibrary_ButtonAction:(id)sender;
 - (IBAction) chooseMixedInKeyDatabase_ButtonAction:(id)sender;
 - (IBAction) go_ButtonAction:(id)sender;
+- (IBAction) loadMixedInKeyData:(id)sender;
+- (IBAction) loadTraktorLibary:(id)sender;
+- (IBAction) filterByDate:(id)sender;
+- (IBAction)verifyKeysMatch:(id)sender;
+-(IBAction)findImproperKeys:(id)sender;
+-(IBAction)fixImproperKeys:(id)sender;
+- (IBAction)addKeyCodesToTitles:(id)sender;
+- (IBAction)showAll:(id)sender ;
+-(IBAction)saveToTraktorLibrary:(id)sender;
 
 - (void) loadTraktorLibary;
 - (void) loadMixedInKeyData;
